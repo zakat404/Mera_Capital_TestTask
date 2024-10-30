@@ -1,31 +1,34 @@
+# app/clients/deribit_client.py
+
 import aiohttp
 import asyncio
 import time
-from app.models.currency_models import CurrencyPrice
-from app.db.database import async_session
+from app.dao.currency_dao import CurrencyDAO
+from app.models.currency_models import CurrencyDataModel
+from app.config.settings import settings
 
-DERIBIT_API_URL = "https://www.deribit.com/api/v2/public/get_index_price"
+class DeribitClient:
+    def __init__(self):
+        self.base_url = "https://www.deribit.com/api/v2/public/get_index_price"
+        self.currencies = ["btc_usd", "eth_usd"]
+        self.dao = CurrencyDAO()
 
-async def fetch_price(session, ticker):
-    params = {"index_name": ticker}
-    async with session.get(DERIBIT_API_URL, params=params) as response:
-        data = await response.json()
-        return data["result"]["index_price"]
+    async def fetch_price(self, session: aiohttp.ClientSession, currency: str):
+        params = {"index_name": currency.upper()}
+        async with session.get(self.base_url, params=params) as response:
+            data = await response.json()
+            price = data["result"]["index_price"]
+            timestamp = int(time.time())
+            currency_data = CurrencyDataModel(
+                ticker=currency, price=price, timestamp=timestamp
+            )
+            await self.dao.save_currency_data(currency_data)
 
-async def fetch_prices():
-    async with aiohttp.ClientSession() as session:
-        btc_price = await fetch_price(session, "btc_usd")
-        eth_price = await fetch_price(session, "eth_usd")
-        timestamp = int(time.time())
-
-        async with async_session() as db_session:
-            for ticker, price in [("btc_usd", btc_price), ("eth_usd", eth_price)]:
-                db_session.add(CurrencyPrice(ticker=ticker, price=price, timestamp=timestamp))
-            await db_session.commit()
-
-async def schedule_price_fetch():
-    while True:
-        await fetch_prices()
-        await asyncio.sleep(60)
-
-
+    async def start_fetching(self):
+        while True:
+            async with aiohttp.ClientSession() as session:
+                tasks = [
+                    self.fetch_price(session, currency) for currency in self.currencies
+                ]
+                await asyncio.gather(*tasks)
+            await asyncio.sleep(60)

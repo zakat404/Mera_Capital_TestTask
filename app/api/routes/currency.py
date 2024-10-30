@@ -1,25 +1,35 @@
-from fastapi import APIRouter, HTTPException
+# app/api/routes/currency.py
+
+from fastapi import APIRouter, HTTPException, Query
+from typing import List, Optional
 from app.services.currency_service import CurrencyService
+from app.models.currency_models import CurrencyData
 
 router = APIRouter()
+service = CurrencyService()
 
-@router.get("/prices")
-async def get_all_prices(ticker: str):
-    prices = await CurrencyService.get_all_prices(ticker)
-    if not prices:
-        raise HTTPException(status_code=404, detail="Currency not found")
-    return prices
 
-@router.get("/latest_price")
-async def get_latest_price(ticker: str):
-    price = await CurrencyService.get_latest_price(ticker)
-    if not price:
-        raise HTTPException(status_code=404, detail="Currency not found")
-    return price
+@router.get("/currency", response_model=List[CurrencyData])
+async def get_all_data(ticker: str = Query(...)):
+    data = await service.get_all_data(ticker)
+    if not data:
+        raise HTTPException(status_code=404, detail="Data not found")
+    return data
 
-@router.get("/prices_in_range")
-async def get_prices_in_range(ticker: str, start_date: int, end_date: int):
-    prices = await CurrencyService.get_prices_within_date_range(ticker, start_date, end_date)
-    if not prices:
-        raise HTTPException(status_code=404, detail="No data found for the given date range")
-    return prices
+
+@router.get("/currency/latest", response_model=CurrencyData)
+async def get_latest_price(ticker: str = Query(...)):
+    data = await service.get_latest_price(ticker)
+    if not data:
+        raise HTTPException(status_code=404, detail="Data not found")
+    return data
+
+
+@router.get("/currency/filter", response_model=List[CurrencyData])
+async def get_data_by_date(
+    ticker: str = Query(...), start_date: int = Query(...), end_date: int = Query(...)
+):
+    data = await service.get_data_by_date(ticker, start_date, end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Data not found")
+    return data

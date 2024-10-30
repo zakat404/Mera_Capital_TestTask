@@ -1,8 +1,11 @@
 fastapi
-uvicorn
+uvicorn[standard]
 aiohttp
-sqlalchemy
+SQLAlchemy
 asyncpg
+psycopg2-binary
+pydantic
 pytest
 pytest-asyncio
 httpx
+pydantic-settings

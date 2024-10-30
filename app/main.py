@@ -1,19 +1,19 @@
-import uvicorn
+# app/main.py
+
 from fastapi import FastAPI
 from app.api.routes.currency import router as currency_router
-from app.models.currency_models import Base
-from app.db.database import engine
+from app.clients.deribit_client import DeribitClient
+from app.db.database import init_db
+import asyncio
 
-app = FastAPI()
+app = FastAPI(title="Deribit Client API")
 
+app.include_router(currency_router, prefix="/api/v1")
 
-app.include_router(currency_router, prefix="/api")
+# Запуск клиента для получения данных каждые 60 секунд
+deribit_client = DeribitClient()
 
-# Создание таблиц
 @app.on_event("startup")
-async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+async def startup_event():
+    await init_db()  # Инициализация базы данных
+    asyncio.create_task(deribit_client.start_fetching())

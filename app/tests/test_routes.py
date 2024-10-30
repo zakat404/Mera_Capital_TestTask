@@ -1,16 +1,11 @@
-from fastapi.testclient import TestClient
-from main import app
+# app/tests/test_routes.py
 
-client = TestClient(app)
+import pytest
+from httpx import AsyncClient
+from app.main import app
 
-def test_get_all_prices():
-    response = client.get("/api/prices?ticker=btc_usd")
-    assert response.status_code in [200, 404]
-
-def test_get_latest_price():
-    response = client.get("/api/latest_price?ticker=btc_usd")
-    assert response.status_code in [200, 404]
-
-def test_get_prices_in_range():
-    response = client.get("/api/prices_in_range?ticker=btc_usd&start_date=1695000000&end_date=1696000000")
-    assert response.status_code in [200, 404]
+@pytest.mark.asyncio
+async def test_get_all_data():
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.get("/api/v1/currency", params={"ticker": "btc_usd"})
+    assert response.status_code == 200
