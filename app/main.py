@@ -17,3 +17,7 @@ deribit_client = DeribitClient()
 async def startup_event():
     await init_db()  # Инициализация базы данных
     asyncio.create_task(deribit_client.start_fetching())
+
+@app.get("/")
+async def read_root():
+    return {"message": "API is up and running!"}

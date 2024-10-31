@@ -9,7 +9,7 @@ router = APIRouter()
 service = CurrencyService()
 
 
-@router.get("/currency", response_model=List[CurrencyData])
+@router.get("v1/currency", response_model=List[CurrencyData])
 async def get_all_data(ticker: str = Query(...)):
     data = await service.get_all_data(ticker)
     if not data:
