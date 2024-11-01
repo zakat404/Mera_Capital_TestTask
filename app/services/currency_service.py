@@ -1,6 +1,5 @@
-# app/services/currency_service.py
-
 from typing import List
+from datetime import datetime
 from app.dao.currency_dao import CurrencyDAO
 from app.models.currency_models import CurrencyData
 
@@ -15,6 +14,6 @@ class CurrencyService:
         return await self.dao.get_latest_price(ticker)
 
     async def get_data_by_date(
-        self, ticker: str, start_date: int, end_date: int
+        self, ticker: str, start_date: datetime, end_date: datetime
     ) -> List[CurrencyData]:
         return await self.dao.get_data_by_date(ticker, start_date, end_date)

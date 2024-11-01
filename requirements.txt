@@ -9,3 +9,5 @@ pytest
 pytest-asyncio
 httpx
 pydantic-settings
+pytz
+greenlet

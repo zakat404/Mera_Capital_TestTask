@@ -1,4 +1,3 @@
-# Dockerfile
 
 FROM python:3.10-slim
 
@@ -6,7 +5,7 @@ WORKDIR /app
 
 COPY . /app
 
-# Установка необходимых пакетов
+
 RUN apt-get update && \
     apt-get install -y build-essential curl netcat-openbsd && \
     rm -rf /var/lib/apt/lists/*

@@ -18,9 +18,9 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_USER: your_user_name
-          POSTGRES_PASSWORD: your_password
-          POSTGRES_DB: your_database_name
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: user_db
+          POSTGRES_DB: deribit_data
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -34,15 +34,29 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.10
+        python-version: 3.12
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Wait for PostgreSQL
+      run: |
+        for i in {1..10}; do
+          pg_isready -h localhost -p 5432 -U postgres && break
+          echo "Postgres not ready yet, waiting..."
+          sleep 2
+        done
+
+    - name: Apply database migrations
+      run: |
+        alembic upgrade head
+      env:
+        DATABASE_URL: "postgresql://postgres:user_db@localhost:5432/deribit_data"
+
     - name: Run tests
       env:
-        DATABASE_URL: "postgresql://your_user_name:your_password@localhost:5432/your_database_name"
+        DATABASE_URL: "postgresql://postgres:user_db@localhost:5432/deribit_data"
       run: |
-        pytest
+        pytest app/tests --disable-warnings
