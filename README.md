@@ -88,8 +88,6 @@ curl -X GET http://localhost:8000/api/currency?ticker=btc_usd
 Пример ответа:
 
 ```
-json
-Копировать код
 [
   {
     "id": 1,
@@ -118,7 +116,8 @@ URL: ````/api/currency/latest````
 
 Пример ответа:
 
-```{
+```
+{
   "id": 2,
   "ticker": "btc_usd",
   "price": 70500.0,
